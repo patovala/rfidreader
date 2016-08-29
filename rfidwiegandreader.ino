@@ -1,5 +1,9 @@
 #include <SoftwareSerial.h>  // SoftwareSerial must be included because the library depends on it
 #include "./RFID.h"
+#define Control1         4  //On / Off
+#define PushButtonPin    5  // choose the pin for the Pushbutton
+
+#define TIMEUNLOCKDOOR 6000 // Time unlock door 15s
 
 // Creates an RFID instance in Wiegand Mode
 // DATA0 of the RFID Reader must be connected 
@@ -17,7 +21,11 @@ RFIDTag tag;
 void setup() 
 {
     Serial.begin(9600);  // Initializes serial port
-    while ( !Serial );
+    pinMode(Control1, OUTPUT);
+    digitalWrite(Control1, HIGH);
+    pinMode(PushButtonPin, INPUT);    // declare PushButtonPin as output
+    digitalWrite(PushButtonPin, LOW);
+    while ( !Serial );   
 }
 
 void loop()
@@ -30,4 +38,22 @@ void loop()
         if (tag.valid) Serial.println("valid");
         else Serial.println("invalid");
     }
+    
+    if(Serial.available()){
+        int thisChar = Serial.read();
+        if(thisChar == 'o'){
+            Serial.println("Intentando abrir la puerta");
+            digitalWrite(Control1, LOW);
+            delay(TIMEUNLOCKDOOR);
+            digitalWrite(Control1, HIGH);
+        }
+    }
+
+    int val = digitalRead (PushButtonPin);  // read input value
+    if (val == HIGH) {         // check if the input is HIGH (button released)
+         Serial.println("Intentando abrir la puerta desde el switch");
+         digitalWrite(Control1, LOW);
+         delay(TIMEUNLOCKDOOR);
+         digitalWrite(Control1, HIGH);
+     }
 }
